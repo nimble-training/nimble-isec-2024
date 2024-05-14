@@ -71,7 +71,7 @@ library(coda)
 
 # The WinBUGS/OpenBUGS/JAGS language has made a huge impact on applied Bayesian statistics.
 
-![](BUGS_Books.png)
+![](img/BUGS_Books.png)
 
 # First example: CJS capture-recapture model with "classic" dipper data.
 
@@ -121,7 +121,7 @@ dipper_code_dcat <- nimbleCode({
 
 # Basic nimble workflow
 
-![](nimble_basics.png)
+![](img/nimble_basics.png)
 
 # Setup data, constants, and inits
 
@@ -389,7 +389,7 @@ dipper_MCMCconf$printSamplers("phi")
 
 # Differences from NIMBLE to JAGS and/or BUGS
 
-* See our [guide on converting from JAGS to NIMBLE](https://r-nimble.org/quick-guide-for-converting-from-jags-or-bugs-to-nimble)
+* See our <a href="https://r-nimble.org/quick-guide-for-converting-from-jags-or-bugs-to-nimble" target="_blank" style="color: blue">guide on converting from JAGS to NIMBLE</a>
 * Wrap your model code in `nimbleCode({})` directly in R.
 * Provide information about missing or empty indices:
 
@@ -402,11 +402,13 @@ dipper_MCMCconf$printSamplers("phi")
 * `nimbleMCMC` will do everything.
 * `nimbleModel`, `configureMCMC`, `buildMCMC`, `compileNimble` and `runMCMC` give you more control.
     
-![](NIMBLE_workflow.png) 
+![](img/NIMBLE_workflow.png) 
 
 # Additional Resources
 
-[NIMBLE User Manual](https://r-nimble.org/html_manual/cha-welcome-nimble.html)
+<a href="https://r-nimble.org/html_manual/cha-welcome-nimble.html" target="_blank" style="color: blue">NIMBLE User Manual</a>
 
-[NIMBLE Cheat Sheet](https://r-nimble.org/cheatsheets/NimbleCheatSheet.pdf)
+<a href="https://r-nimble.org/cheatsheets/NimbleCheatSheet.pdf" target="_blank" style="color: blue">NIMBLE Cheat Sheet</a>
+
+
 
