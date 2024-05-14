@@ -1,6 +1,8 @@
 # nimble-isec-2024
 
-This repository contains Materials for the NIMBLE workshop at the 2024 ISEC conference at Swansea University, Wales.  The workshop is being held in-person, on 13 July 2024, from 10:00 – 13:00 BST.
+This repository contains Materials for the NIMBLE workshop at the 2024 ISEC conference at Swansea University, Wales.
+
+The workshop will be held in-person, on 13 July 2024 from 10:00 – 13:00 BST.
 
 To prepare for the workshop:
 
@@ -28,11 +30,11 @@ You will still be able to follow the workshop without this background, but the w
 
 ## Help with NIMBLE
 
-Our web site is [here](https://r-nimble.org).
+The NIMBLE web site is [here](https://r-nimble.org).
 
-Our user manual is [here](https://r-nimble.org/html_manual/cha-welcome-nimble.html).
+The NIMBLE user manual is [here](https://r-nimble.org/html_manual/cha-welcome-nimble.html).
 
-We have a 'cheatsheet' [here](https://r-nimble.org/documentation).
+A NIMBLE "cheatsheet" is available [here](https://r-nimble.org/documentation).
 
 For those of you who are not already familiar with writing models in WinBUGS, JAGS, or NIMBLE, you may want to look through the first module (Introduction to NIMBLE) or Section 5.2 of our user manual in advance.
 
