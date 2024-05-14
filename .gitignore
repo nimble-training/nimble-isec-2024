@@ -1,1 +1,17 @@
 .DS_Store
+.idea
+*.log
+tmp/
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Cache files
+*_cache
+*_files
+figure
+
+# Session Data files
+.RData
+
