@@ -1,0 +1,67 @@
+---
+title: "Using `nimbleHMC`"
+subtitle: "ISEC 2024 Workshop"
+author: "NIMBLE Development Team"
+date: "July 2024"
+ output:
+  slidy_presentation: default
+  beamer_presentation: default
+---
+
+<style>
+slides > slide {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(nimble)
+library(coda)
+```
+
+
+# Hamiltonian Monte Carlo (HMC) sampling
+
+
+No-U-Turn sampling
+
+
+# Popularity of HMC
+
+- Stan
+- articles
+
+# What's in `nimbleHMC`
+
+- sampler following Stan
+- NUTS classic
+
+
+# Adding an HMC sampler to an MCMC
+
+- build, compile run, ...
+
+
+
+# Comparison of HMC vs. non-HMC
+
+
+# Summary
+
+- HMC can give better mixing; but at a higher computational cost
+- No certainty of what appraoch is best; problem dependent
+
+
+# Overview
+
+- NUTS
+- NUTS_classic
+
+
+- addSampler
+- addHMC
+- configureHMC
+- buildHMC
+- nimbleHMC
