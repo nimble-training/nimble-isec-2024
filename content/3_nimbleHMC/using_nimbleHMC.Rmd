@@ -3,7 +3,7 @@ title: "Using `nimbleHMC`"
 subtitle: "ISEC 2024 Workshop"
 author: "NIMBLE Development Team"
 date: "July 2024"
- output:
+output:
   slidy_presentation: default
   beamer_presentation: default
 ---
@@ -24,44 +24,276 @@ library(coda)
 
 # Hamiltonian Monte Carlo (HMC) sampling
 
+- There are many different options for MCMC sampling
+  - Metropolis Hastings
+  - slice sampling
+  - conjugate (Gibbs) sampling
+  - cross-level sampling
+- NIMBLE is somewhat unique, allowing users to pick-and-choose their own MCMC sampling strategy.
+- Different sampling algorithms vary in terms of computational requirements, and mixing / convergence.
 
-No-U-Turn sampling
+\  
+
+- Hamiltonian Monte Carlo (HMC) sampling is one sampling strategy
+  - Originally called *Hybird* Monte Carlo sampling <a href="https://www.sciencedirect.com/science/article/abs/pii/037026938791197X" target="_blank" style="color: blue">(Duane, et al, 1987)</a>
+- Requires gradients of model density calculations (directional derivatives in parameter space).
+- Applicable to continuous-valued parameters only
+- Has the potential to generate large transitions in parameter space
+
+  - The resulting MCMC samples can have low autocorrelation  
+  - Therefore have high information content
+
+\  
+
+<a href="https://chi-feng.github.io/mcmc-demo/app.html" target="_blank" style="color: blue">Animated HMC Demo</a>
 
 
-# Popularity of HMC
+# No-U-Turn (NUTS) HMC Sampling
 
-- Stan
-- articles
+- Standard HMC requires setting tuning parameters:
+  - Integration stepsize
+  - Number of integration steps
+- Performance is highly dependent on "good" choices of these parameters
+
+- No-U-Turn variety of HMC was introducted (HMC-NUTS, or just NUTS sampling, <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>)
+  - Self-tunes these parameters
+  - No manual tuning required
+  - Greatly improves the applicability and ease-of-use of HMC sampling
+
+### Rapid adoption of HMC into mainstream Bayesian analyses
+
+- Advent of the popular Stan software, which is engineered solely around HMC-NUTS sampling.
+- Inclusion of HMC-NUTS sampling in pyMC3.
+
+\  
+
+- Implementation in the NIMBLE programming langauge
+  - HMC-NUTS sampling is available for NIMBLE, using the `nimbleHMC` package
+
 
 # What's in `nimbleHMC`
 
-- sampler following Stan
-- NUTS classic
+The `nimbleHMC` package has two main components
+
+\  
+
+### Samplers
+
+Provides two distinct HMC samplers, for use in NIMBLE's HMC engine
+
+- **`NUTS`** sampler, implements HMC-NUTS sampling algorithm, identical to that provided in Stan (version 2.32.2).
+  - The default sampler for all HMC-related functions
+
+- **`NUTS_classic`** sampler, implements the original NUTS sampling algorithm (as described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>)
+  - Provided for baseline performance and comparisons
+
+These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in NIMBLE's MCMC engine.
+
+- Can be added to an MCMC configuration object using the `addSampler` method:
+  - `conf$addSampler(target = nodes, type = "NUTS")`
+
+\  
+
+### Convenience Functions
+
+`nimbleHMC` also provides a variety of convenience functions, for adding HMC samplings, and building MCMCs which include HMC samplers:
+
+- **`addHMC`**: adds an HMC sampler to an existing MCMC configuration object 
+- **`configureHMC`**: creates an MCMC configuration object, with HMC applied to all continuous-valued dimensions 
+- **`buildHMC`**: build an MCMC algorithm, with HMC applied to all continuous-valued dimensions 
+- **`nimbleHMC`**: builds, compiles, and executes an MCMC, with HMC applied to all continuous-valued dimensions 
+
+The multitude of these "convenience" functions make them sound more complicated than they are! ...
 
 
-# Adding an HMC sampler to an MCMC
+# "Convenience" Functions Explained 
 
-- build, compile run, ...
+![](img/HMC_convenience_functions.001.png) 
+
+
+# "Convenience" Functions Explained 
+
+![](img/HMC_convenience_functions.002.png) 
 
 
 
-# Comparison of HMC vs. non-HMC
+# Example: dipper model with HMC (1)
+
+We'll return to the dipper example from the first module.  We'll now sample this using HMC, in three different ways. 
+
+### using `configureHMC`
+
+*Note:* Need to specify `buildDerivs = TRUE` in the call to `nimbleModel`
+
+
+
+
+# Example: dipper model with HMC (2)
+
+We'll return to the dipper example from the first module.  We'll now sample this using HMC, in three different ways. 
+
+### using `nimbleHMC`
+
+*Note:* Need to specify `buildDerivs = TRUE` in the call to `nimbleModel`
+
+
+
+
+# Example: dipper model with HMC (3)
+
+### using `addSampler`
+
+
+
+
+
+
+
+# HMC "Warmup" Period
+
+- HMC sampling has a "warmup" period, during which it performs self-parameter tuning
+  - After "warmup" is complete, the sampler stops self-adapatation, and runs faster.
+  
+Some initial portion of the MCMC sampling process corresponds to this "warmup" period.
+  - Samples during the warmup period are oftentimes *not* used for inference. 
+
+### Setting the `warmupMode`
+
+There are 4 possible ways the "warmup period" is set, which are controlled by the `warmupMode` variable:
+
+- **`warmupMode = default`**: 
+  - If burnin period is specified, then the burnin samples are the warmup
+  - If no burnin is specified, then 1/2 the MCMC iterations are the warmup period.
+
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"))
+
+runMCMC(Cmcmc, 10000)
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 5000 warmup iterations.
+##         Since `warmupMode` is 'default' and `nburnin` = 0,
+##         the number of warmup iterations is equal to `niter/2`.
+##         No samples will be discarded, so the first half of the samples returned
+##         are from the warmup period, and the second half of the samples are post-warmup.
+```
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"))
+
+runMCMC(Cmcmc, 10000, nburnin = 1000)
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 1000 warmup iterations.
+##         Since `warmupMode` is 'default' and `nburnin` > 0,
+##         the number of warmup iterations is equal to `nburnin`.
+##         The burnin samples will be discarded, and all samples returned will be post-warmup.
+```
+
+- **`warmupMode = burnin`**: 
+  - The burnin period is the warmup period (even if no burnin is specified)
+  - If `warmupMode = burnin`, and `nburnin = 0`, then no self-turning takes place!
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"), warmupMode = "burnin") 
+
+runMCMC(Rmcmc, 10000) 
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 0 warmup iterations. 
+##         No adaptation is being done, apart from initialization of epsilon 
+##         (if `initializeEpsilon` is TRUE). 
+```
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"), warmupMode = "burnin") 
+
+runMCMC(Rmcmc, 10000, nburnin = 2000) 
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 2000 warmup iterations. 
+##         Since `warmupMode` is 'burnin', the number of warmup iterations is equal to `nburnin`. 
+##         The burnin samples will be discarded, and all samples returned will be post-warmup. 
+```
+
+
+- **`warmupMode = fraction`**: 
+  - You also must specify a variable called *warmup* (between 0 and 1) 
+  - The warmup period is (*warmup*) x (total number of MCMC iterations) regardless of any burnin specified
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"), warmupMode = "fraction", warmup = 1/3)
+
+runMCMC(Rmcmc, 10000)
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 3333 warmup iterations.
+##         Since `warmupMode` is 'fraction', the number of warmup iterations is equal to
+##         `niter*fraction`, where `fraction` is the value of the `warmup` control argument.
+##         Because `nburnin` is less than the number of warmup iterations,
+##         some of the samples returned will be collected during the warmup period,
+##         and the remainder of the samples returned will be post-warmup.
+```
+
+- **`warmupMode = iterations`**: 
+  - You also must specify a variable called *warmup* (a positive integer)
+  - The warmup period is the first *warmup* MCMC iterations, regardless of any burnin specified
+
+```{r eval = FALSE}
+addHMC(conf, target = c("phi", "p"), warmupMode = "iterations", warmup = 750)
+
+runMCMC(Rmcmc, 10000)
+
+##  [Note] NUTS sampler (nodes: phi[1], phi[2], p) is using 750 warmup iterations.
+##         Since `warmupMode` is 'iterations', the number of warmup iterations
+##         is the value of the `warmup` control argument.
+##         Because `nburnin` is less than the number of warmup iterations,
+##         some of the samples returned will be collected during the warmup period,
+##         and the remainder of the samples returned will be post-warmup.
+```
+
+
+
+
+# Mix and Match Samplers
+
+- Discrete parameters arise in a range of statistical models:
+  - Hidden Markov models (HMMS)
+  - Finite mixture models
+  - Generally, in the presence of unobserved categorical data
+- But HMC cannot operate on discrete parameters
+
+\  
+
+- NIMBLE (alone) allows you to mix-and-match sampling strategies 
+- Other software cannot operate on models containing discrete parameters
+
+\  
+
+- `nimbleHMC` fills this void, by providing HMC that operates within NIMBLE
+- HMC samplers operate alongside other samplers avaialble in base `nimble` package
+
+
+
+
+
+
 
 
 # Summary
 
-- HMC can give better mixing; but at a higher computational cost
-- No certainty of what appraoch is best; problem dependent
+- Using HMC can give better mixing
+  - But at a higher computational cost
+- No guarantee of what appraoch is best - it's generally problem dependent
+
+### `nimbleHMC`
+
+- Provides `NUTS` and `NUTS_classic` samplers
+- A variety of functions for adding and configuring HMC samplers (`addHMC`, `configureHMC`, `nimbleHMC`, etc)
+
+\   
+
+Give it a try for your own model
 
 
-# Overview
-
-- NUTS
-- NUTS_classic
 
 
-- addSampler
-- addHMC
-- configureHMC
-- buildHMC
-- nimbleHMC
+
+
+
