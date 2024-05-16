@@ -1,5 +1,5 @@
 ---
-title: "Using `nimbleHMC`"
+title: "`nimbleHMC`: Hamiltonian Monte Carlo sampling in NIMBLE"
 subtitle: "ISEC 2024 Workshop"
 author: "NIMBLE Development Team"
 date: "July 2024"
@@ -34,7 +34,9 @@ library(coda)
 
 \  
 
-- Hamiltonian Monte Carlo (HMC) sampling is one sampling strategy
+### Hamiltonian Monte Carlo
+
+- **Hamiltonian Monte Carlo (HMC)** sampling is one sampling strategy 
   - Originally called *Hybird* Monte Carlo sampling <a href="https://www.sciencedirect.com/science/article/abs/pii/037026938791197X" target="_blank" style="color: blue">(Duane, et al, 1987)</a>
 - Requires gradients of model density calculations (directional derivatives in parameter space).
 - Applicable to continuous-valued parameters only
@@ -55,17 +57,21 @@ library(coda)
   - Number of integration steps
 - Performance is highly dependent on "good" choices of these parameters
 
-- No-U-Turn variety of HMC was introducted (HMC-NUTS, or just NUTS sampling, <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>)
+- No-U-Turn variety of HMC relieves this burden
+  - HMC-NUTS, or just NUTS sampling
+  - <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>)
   - Self-tunes these parameters
   - No manual tuning required
   - Greatly improves the applicability and ease-of-use of HMC sampling
 
-### Rapid adoption of HMC into mainstream Bayesian analyses
+### Rapid adoption of HMC into mainstream Bayesian analyses 
 
 - Advent of the popular Stan software, which is engineered solely around HMC-NUTS sampling.
 - Inclusion of HMC-NUTS sampling in pyMC3.
 
 \  
+
+### `nimbleHMC` package
 
 - Implementation in the NIMBLE programming langauge
   - HMC-NUTS sampling is available for NIMBLE, using the `nimbleHMC` package
@@ -73,18 +79,19 @@ library(coda)
 
 # What's in `nimbleHMC`
 
-The `nimbleHMC` package has two main components
+The `nimbleHMC` package has two main components:
 
 \  
 
-### Samplers
+### 1. HMC Samplers
 
 Provides two distinct HMC samplers, for use in NIMBLE's HMC engine
 
 - **`NUTS`** sampler, implements HMC-NUTS sampling algorithm, identical to that provided in Stan (version 2.32.2).
   - The default sampler for all HMC-related functions
 
-- **`NUTS_classic`** sampler, implements the original NUTS sampling algorithm (as described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>)
+- **`NUTS_classic`** sampler, implements the original NUTS sampling algorithm
+-   s described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>
   - Provided for baseline performance and comparisons
 
 These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in NIMBLE's MCMC engine.
@@ -94,7 +101,7 @@ These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in 
 
 \  
 
-### Convenience Functions
+### 2. Convenience Functions
 
 `nimbleHMC` also provides a variety of convenience functions, for adding HMC samplings, and building MCMCs which include HMC samplers:
 
@@ -102,6 +109,8 @@ These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in 
 - **`configureHMC`**: creates an MCMC configuration object, with HMC applied to all continuous-valued dimensions 
 - **`buildHMC`**: build an MCMC algorithm, with HMC applied to all continuous-valued dimensions 
 - **`nimbleHMC`**: builds, compiles, and executes an MCMC, with HMC applied to all continuous-valued dimensions 
+
+\   
 
 The multitude of these "convenience" functions make them sound more complicated than they are! ...
 
@@ -117,31 +126,325 @@ The multitude of these "convenience" functions make them sound more complicated 
 
 
 
-# Example: dipper model with HMC (1)
+# Example: Dipper model with HMC (1)
 
 We'll return to the dipper example from the first module.  We'll now sample this using HMC, in three different ways. 
 
-### using `configureHMC`
+\   
+
+### 1. Full workflow, using `configureHMC` and `addSampler`
+
+- Here, we'll use the full workflow, where we modify the MCMC configuration object, to add an HMC sampler.  This workflow will use:
+  - `nimbleModel`
+  - `configureMCMC`
+  - `addSampler` to add an HMC sampler
+  - `buildMCMC`
+  - `compileNimble`
+  - `runMCMC`
+  
+\   
+
+```{r }
+library(nimble)
+library(nimbleHMC)
+
+dipper_example_dir <- file.path("..", "..", "content", "examples", "dipper")
+dipper <- read.csv(file.path(dipper_example_dir,"dipper.csv"))
+y <- as.matrix(dipper[ , 1:7])
+
+first <- apply(y, 1, function(x) min(which(x != 1))) # first capture time
+y <- y[ first != 7, ] # remove records with first capture on last occasion
+first <- apply(y, 1, function(x) min(which(x != 1))) # first capture time
+
+dipper_code <- nimbleCode({
+    phi ~ dunif(0, 1)
+    p ~ dunif(0, 1)
+    for(i in 1:N) {
+        for(t in (first[i]+1):T) {
+            x[i,t] ~ dbern(phi * x[i,t-1])
+            y[i,t] ~ dbern(p * x[i,t])
+        }
+    }
+})
+
+dipper_constants <- list(
+    N = nrow(y),
+    T = ncol(y),
+    first = first
+)
+
+dipper_data <- list(y = y)
+
+dipper_inits <- list(
+    phi = 0.5,
+    p = 0.5,
+    x = array(1, dim(y))
+)
+```
+
+Build model object:
 
 *Note:* Need to specify `buildDerivs = TRUE` in the call to `nimbleModel`
 
+```{r eval = FALSE}
+Rmodel <- nimbleModel(
+    dipper_code, dipper_constants, dipper_data, dipper_inits,
+    buildDerivs = TRUE)
+```
+
+Make MCMC configuration object:
+
+```{r eval = FALSE}
+conf <- configureMCMC(Rmodel)
+```
+
+```
+## ===== Monitors =====
+## thin = 1: p, phi 
+## ===== Samplers =====
+## RW sampler (2) 
+##   - phi 
+##   - p 
+## binary sampler (1720) 
+##   - x[]  (1720 elements) 
+```
+
+Remove default RW samplers on "phi" and "p"
+
+```{r eval = FALSE}
+conf$removeSamplers(c("phi", "p"))
+```
+
+Add a NUTS sampler:
+
+```{r eval = FALSE}
+conf$addSampler(type = "NUTS", target = c("phi", "p"))
+
+conf
+```
+
+```
+## ===== Monitors =====
+## thin = 1: p, phi
+## ===== Samplers =====
+## NUTS sampler (1)
+##   - phi, p 
+## binary sampler (1720)
+##   - x[]  (1720 elements)
+```
+
+Build the MCMC algorithm:
+
+```{r eval = FALSE}
+Rmcmc <- buildMCMC(conf)
+```
+
+Compile model and MCMC:
+
+```{r eval = FALSE}
+Cmodel <- compileNimble(Rmodel)
+Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
+```
+
+```
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+```
+
+Execute the MCMC:
+
+```{r eval = FALSE}
+samples <- runMCMC(Cmcmc, 1000)
+```
+
+```
+## running chain 1...
+##   [Note] NUTS sampler (nodes: phi, p) is using 500 warmup iterations.
+##          Since `warmupMode` is 'default' and `nburnin` = 0,
+##          the number of warmup iterations is equal to `niter/2`.
+##          No samples will be discarded, so the first half of the samples returned
+##          are from the warmup period, and the second half of the samples are post-warmup.
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+```
+
+
+```{r echo = FALSE}
+load("~/github/nimble/workshops/nimble-isec-2024/content/examples/dipper/dipperSamples1.RData")
+```
+
+```{r}
+library(coda)
+plot(as.mcmc(samples))
+```
 
 
 
-# Example: dipper model with HMC (2)
+
+
+
+
+# Example: Dipper model with HMC (2)
+
 
 We'll return to the dipper example from the first module.  We'll now sample this using HMC, in three different ways. 
 
-### using `nimbleHMC`
+\   
+
+### 2. Using `buildHMC` to build an MCMC using HMC
+
+- This time, we'll use the `buildHMC` shortcut, to quickly build and MCMC algorithm that uses HMC.  This workflow will use:
+  - `nimbleModel`
+  - `buildHMC`
+  - `compileNimble`
+  - `runMCMC`
+
+\   
+
+
+Build model object:
 
 *Note:* Need to specify `buildDerivs = TRUE` in the call to `nimbleModel`
 
+```{r eval = FALSE}
+Rmodel <- nimbleModel(
+    dipper_code, dipper_constants, dipper_data, dipper_inits,
+    buildDerivs = TRUE)
+```
+
+Make MCMC that uses HMC sampling (for all nodes applicable):
+
+```{r eval = FALSE}
+Rmcmc <- buildHMC(Rmodel)
+```
+
+```
+## ===== Monitors =====
+## thin = 1: p, phi
+## ===== Samplers =====
+## NUTS sampler (1)
+##   - phi, p 
+## binary sampler (1720)
+##   - x[]  (1720 elements)
+```
+
+Compile model and MCMC:
+
+```{r eval = FALSE}
+Cmodel <- compileNimble(Rmodel)
+Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
+```
+
+```
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+```
+
+Execute the MCMC:
+
+```{r eval = FALSE}
+samples <- runMCMC(Cmcmc, 1000)
+```
+
+```
+## running chain 1...
+##   [Note] NUTS sampler (nodes: phi, p) is using 500 warmup iterations.
+##          Since `warmupMode` is 'default' and `nburnin` = 0,
+##          the number of warmup iterations is equal to `niter/2`.
+##          No samples will be discarded, so the first half of the samples returned
+##          are from the warmup period, and the second half of the samples are post-warmup.
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+```
+
+
+```{r}
+plot(as.mcmc(samples))
+```
 
 
 
-# Example: dipper model with HMC (3)
 
-### using `addSampler`
+
+
+
+
+
+
+# Example: Dipper model with HMC (3)
+
+
+We'll return to the dipper example from the first module.  We'll now sample this using HMC, in three different ways. 
+
+\   
+
+### 3. Fully automated: using `nimbleHMC`
+
+- This time, we'll use the fully automated workflow provided by `nimbleHMC`.  This workflow uses:
+  - `nimbleHMC`
+
+
+\   
+ 
+Build, execute, compile, and run MCMC algorithm with HMC sampling:
+
+```{r eval = FALSE}
+samples <- nimbleHMC(
+    dipper_code,
+    dipper_constants,
+    dipper_data,
+    dipper_inits,
+    niter = 5000,
+    nburnin = 2000,
+    nchains = 3,
+    monitors = c("phi", "p"),
+    samplesAsCodaMCMC = TRUE
+)
+```
+
+```
+## Defining model
+## Building model
+## Setting data and initial values
+## Running calculate on model
+##   [Note] Any error reports that follow may simply reflect missing values in model variables.
+## Checking model sizes and dimensions
+##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).
+## Checking model calculations
+## 
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+## 
+## running chain 1...
+##   [Note] NUTS sampler (nodes: phi, p) is using 2000 warmup iterations.
+##          Since `warmupMode` is 'default' and `nburnin` > 0,
+##          the number of warmup iterations is equal to `nburnin`.
+##          The burnin samples will be discarded, and all samples returned will be post-warmup.
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+## 
+## running chain 2...
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+## 
+## running chain 3...
+## |-------------|-------------|-------------|-------------|
+## |-------------------------------------------------------|
+```
+
+
+```{r}
+plot(as.mcmc(samples))
+```
+
+
+
+
 
 
 
@@ -271,11 +574,6 @@ runMCMC(Rmcmc, 10000)
 
 
 
-
-
-
-
-
 # Summary
 
 - Using HMC can give better mixing
@@ -286,10 +584,11 @@ runMCMC(Rmcmc, 10000)
 
 - Provides `NUTS` and `NUTS_classic` samplers
 - A variety of functions for adding and configuring HMC samplers (`addHMC`, `configureHMC`, `nimbleHMC`, etc)
+- Avaialble on CRAN now
 
 \   
 
-Give it a try for your own model
+Give it a try on your model!
 
 
 
