@@ -65,9 +65,9 @@ In general, we encourage you to update to the most recent version of NIMBLE (ver
 
 ## Installing additional packages
 
-Some additional packages we will use (beyond those automatically installed with `nimble`) can be installed as follows:
+Prior to the workshop, you should also install the following R packages (beyond those automatically installed with `nimble`), which can be installed as follows:
 
 ```
-install.packages(c("mcmcplots", "coda", "nimbleEcology"))
+install.packages(c("nimbleHMC", "mcmcplots", "coda", "nimbleEcology"))
 ```
 
