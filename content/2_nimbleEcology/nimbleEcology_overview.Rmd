@@ -1,12 +1,11 @@
 ---
 title: "Introduction to nimbleEcology"
+subtitle: "ISEC 2024 Workshop"
 author: "NIMBLE Development Team"
 date: "July 2024"
 output:
   slidy_presentation: default
   beamer_presentation: default
-  ioslides_presentation: default
-subtitle: ISEC 2024 Workshop
 ---
 <style>
 slides > slide {
@@ -41,6 +40,28 @@ The `nimbleEcology` package (Goldstein et al.) provides distributions for:
 - Dynamic occupancy
 - N-mixture (with fast computation)
 - Hidden Markov Models (e.g. multi-state and multi-event capture-recapture)
+
+### AD support for `nimbleEcology`
+
+- As of `nimbleEcology` 0.5.0, AD is supported for those distributions above; simply include `buildDerivs = TRUE` when building your model.
+- For N-mixture models, there are two versions (AD and non-AD) of the same distribution, e.g. `dNmixture_v` vs `dNmixtureAD_v`; use the AD version if derivatives are required for your algorithm (e.g. HMC).
+- There are no naming differences between AD and non-AD versions for other distributions. 
+
+# User-defined distributions: motivation
+
+#### Why write a user-defined distribution?
+
+ - marginalize over parts of the model (e.g., latent states) for improved efficiency
+ - use distributions that NIMBLE does not provide (e.g., Pareto, beta-binomial, etc.)
+ - non-standard data formats (e.g., sparse data representations)
+ - vectorize a set of scalar nodes for efficiency
+
+#### How do I write a user-defined distribution?
+
+- A `nimbleFunction` is defined by providing an R-based density function.
+- The `nimbleFunction` can be compiled if it is limited to basic math, distributions, for loops, if-then-else, and a few other basics.
+- "compiled" means that nimble will generate C++, compile that, and make it available for use from R.
+
 
 # Some resources
 
@@ -108,7 +129,7 @@ MCMC efficiency = $\frac{\mbox{effective sample size (ESS)}}{\mbox{computation t
 - We do not count setup steps like model building and compilation as
   part of computation time. We are more interested in the final MCMC
   performance.
-- Whether to include "burn-in" time depends on the goal.  Today we won't.
+- Whether to include "burn-in" time depends on the goal. Today we won't.
 - One needs a reasonable sample just to get a reasonable estimate of ESS.
 - We generally do not thin when comparing methods because thinning always removes some information from a sample.  People might disagree on this choice.
 - Sometimes fancy samplers are too slow (computationally costly) to be worthwhile.
@@ -238,7 +259,7 @@ Obviously multi-state models can be more complicated than this.
 Setup data
 =====
 Data and code (possibly adapted) from authors.
-```{r}
+```{r, eval = FALSE}
 orchids_example_dir <- file.path("..", "..", "content", "examples","orchids") # modify for your own system
 CH <- as.matrix(read.table(file.path(orchids_example_dir, "orchids.txt"), sep=" ", header = FALSE))
 head(CH) ## Glimpse of data
@@ -308,7 +329,7 @@ Original model code
 - `psiF[j]` = probability of transition from state 2 (Flowering) to state j.
 - `psiD[j]` = probability of transition from state 3 (Dormant) to state j.
 
-```{r}
+```{r, eval = FALSE}
 orchids_code <- nimbleCode({
   ## -------------------------------------------------
   ## Parameters:
@@ -397,7 +418,7 @@ Run original version in `nimble` and `jags`
 
 Some of the runs below may generate model initialization warnings.  They shouldn't be a problem.
 
-```{r, eval = doDHMMexample}
+```{r, eval = FALSE}
 orchids_result <- compareMCMCs(
   orchids_info,
   MCMCs = c("nimble", "jags"),
@@ -411,7 +432,7 @@ orchids_result <- renameMCMC(orchids_result, "jags_orig", "jags")
 
 Version without unnecessary (computationally wasteful) indexing over individuals and/or time
 =====
-```{r}
+```{r, eval = FALSE}
 orchids_code_faster <- nimbleCode({
   ## -------------------------------------------------
   ## Parameters:
@@ -491,7 +512,7 @@ orchids_code_faster <- nimbleCode({
 })
 ```
 
-```{r, eval=doDHMMexample}
+```{r, eval=FALSE}
 set.seed(123)
 orchids_info_faster <- list(code=orchids_code_faster,
                             constants=orchids_data, 
@@ -503,7 +524,7 @@ Run version without unnecessary indexing (faster)
 
 Note: Some elements of `z` (with perfect observation categories) are provided as `data`.  Others as `inits`.
 
-```{r, eval=doDHMMexample}
+```{r, eval=FALSE}
 orchids_result_faster <- compareMCMCs(
   orchids_info_faster,
   MCMCs = c("nimble", "jags"),
@@ -517,7 +538,7 @@ orchids_result_faster <- renameMCMC(orchids_result_faster, "jags_faster", "jags"
 
 DHMM version
 =====
-```{r}
+```{r, eval=FALSE}
 orchids_code_DHMM <- quote({
   ## -------------------------------------------------
   ## Parameters:
@@ -610,7 +631,7 @@ orchids_info_DHMM <- list(code=orchids_code_DHMM,
                           inits=orchids_inits_DHMM())
 ```
 
-```{r, eval=doDHMMexample}
+```{r, eval=FALSE}
 orchids_result_DHMM <- compareMCMCs(
   orchids_info_DHMM,
   MCMCs = c("nimble"),
@@ -623,7 +644,7 @@ orchids_result_DHMM <- renameMCMC(orchids_result_DHMM, "nimble_DHMM", "nimble")
 
 Make results figure
 =====
-```{r, eval=doDHMMexample, echo=FALSE}
+```{r, eval=FALSE, echo=FALSE}
 # Code for generating results that come with slides
 make_MCMC_comparison_pages(c(orchids_result, orchids_result_faster, orchids_result_DHMM),
                            dir = "orchid_results_with_slides",

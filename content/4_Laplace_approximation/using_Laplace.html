@@ -522,6 +522,7 @@ list-style-type: none;
 <body>
 <div class="slide titlepage">
   <h1 class="title">Laplace approximation in NIMBLE</h1>
+  <h1 class="subtitle">ISEC 2024 Workshop</h1>
   <p class="author">
 NIMBLE Development Team
   </p>
@@ -542,8 +543,8 @@ overflow-y: auto !important;
 
 </div>
 <center>
-We have talked a lot about MCMC so far. So, something different in this
-last section!
+<strong>We have talked a lot about MCMC so far. So, something different
+in this last section!</strong>
 </center>
 <p><br />
 </p>
@@ -597,8 +598,8 @@ p(\mathbf{y}|\boldsymbol{\theta}) = \int p(\mathbf{y}, \boldsymbol{\mu}
 \ldots, K\)</span> are <span class="math inline">\(K\)</span>
 <em>conditionally independent sets</em></li>
 <li><span class="math inline">\(p(\mathbf{y}^* |
-\boldsymbol{\theta})\)</span> specifies likelihood component that does
-not depend on any random effects</li>
+\boldsymbol{\theta})\)</span> specifies the likelihood component that
+does not depend on any random effects</li>
 <li><span class="math inline">\((\mathbf{y}_1, \ldots, \mathbf{y}_K,
 \mathbf{y}^*) = \mathbf{y}, (\boldsymbol{\mu}_1, \ldots,
 \boldsymbol{\mu}_K) = \boldsymbol{\mu}\)</span></li>
@@ -865,6 +866,10 @@ sampler using custom likelihood (Laplace here) instead of using
 <li>Other samplers using Laplace/other custom likelihood functions could
 be set up similarly but will need you to modify the original samplers’
 code.</li>
+<li>Evaluating a single Laplace approximation is not expensive, but it
+is a different story when being involved in MCMC running a large number
+of iterations. Thus the MCMC+Laplace workflow would be ideal for models
+with high-dimensional and complex random effects structures.</li>
 </ul>
 <p><br />
 </p>
@@ -960,7 +965,7 @@ et al. (2022)</a> (Laplace MLE).</p>
 </div>
 <div id="example-ii-cjs-model-with-missing-covariates-2" class="slide section level1">
 <h1>Example II: CJS model with missing covariates</h1>
-<p>Results</p>
+<h3 id="results">Results</h3>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="do">## Laplace MLE results </span></span>
 <span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">round</span>(mleres, <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>##          laplace.estimate 95% lower 95% upper

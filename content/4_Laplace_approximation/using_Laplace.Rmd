@@ -1,5 +1,6 @@
 ---
 title: "Laplace approximation in NIMBLE"
+subtitle: "ISEC 2024 Workshop"
 author: "NIMBLE Development Team"
 date: "July 2024"
 output:
@@ -25,7 +26,7 @@ library(coda)
 <div style="margin-top:300px;">
 </div>
 <center>
-We have talked a lot about MCMC so far. So, something different in this last section!
+**We have talked a lot about MCMC so far. So, something different in this last section!**
 </center>
 
 \
@@ -57,7 +58,7 @@ $$
 where
 
 - $(\mathbf{y}_k, \boldsymbol{\mu}_k), k=1, \ldots, K$ are $K$ *conditionally independent sets*
-- $p(\mathbf{y}^* | \boldsymbol{\theta})$ specifies likelihood component that does not depend on any random effects
+- $p(\mathbf{y}^* | \boldsymbol{\theta})$ specifies the likelihood component that does not depend on any random effects
 - $(\mathbf{y}_1, \ldots, \mathbf{y}_K, \mathbf{y}^*) = \mathbf{y}, (\boldsymbol{\mu}_1, \ldots, \boldsymbol{\mu}_K) = \boldsymbol{\mu}$
 - If there are **no random effects**, then nimble Laplace becomes **exact MLE**
 
@@ -273,6 +274,7 @@ mcmcConf2$addMonitors("theta[9]", "theta[10]")
 - You will need to have a good understanding of your model structure to specify the approximate custom likelihood. 
 - The `RW_llFunction` sampler in NIMBLE is a random-walk sampler using custom likelihood (Laplace here) instead of using `model$calculate()`; the multivariate version is `RW_llFunction_block`.
 - Other samplers using Laplace/other custom likelihood functions could be set up similarly but will need you to modify the original samplers' code.
+- Evaluating a single Laplace approximation is not expensive, but it is a different story when being involved in MCMC running a large number of iterations. Thus the MCMC+Laplace workflow would be ideal for models with high-dimensional and complex random effects structures.
 
 \
 
@@ -337,7 +339,7 @@ claplace <- compileNimble(laplace, project = model)
 \
 
 # Example II: CJS model with missing covariates
-Results
+### Results
 ```{r}
 ## Laplace MLE results 
 round(mleres, 2)
