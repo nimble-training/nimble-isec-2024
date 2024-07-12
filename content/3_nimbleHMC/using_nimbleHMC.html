@@ -590,15 +590,22 @@ slides > slide {
 <p> </p>
 <h3 id="hmc-samplers">1. HMC Samplers</h3>
 <p>Provides two distinct HMC samplers, for use in NIMBLE’s HMC engine</p>
+<p> </p>
 <ul>
 <li><strong><code>NUTS</code></strong> sampler, implements HMC-NUTS sampling algorithm, identical to that provided in Stan (version 2.32.2).
 <ul>
 <li>The default sampler for all HMC-related functions</li>
 </ul></li>
-<li><strong><code>NUTS_classic</code></strong> sampler, implements the original NUTS sampling algorithm</li>
-<li>s described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a></li>
-<li>Provided for baseline performance and comparisons</li>
 </ul>
+<p> </p>
+<ul>
+<li><strong><code>NUTS_classic</code></strong> sampler, implements the original NUTS sampling algorithm
+<ul>
+<li>Described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a></li>
+<li>Provided for baseline performance and comparisons</li>
+</ul></li>
+</ul>
+<p> </p>
 <p>These two samplers (<code>NUTS</code>, and <code>NUTS_classic</code>) are fully compatible for use in NIMBLE’s MCMC engine.</p>
 <ul>
 <li>Can be added to an MCMC configuration object using the <code>addSampler</code> method:
@@ -840,8 +847,11 @@ slides > slide {
 <ul>
 <li>After “warmup” is complete, the sampler stops self-adapatation, and runs faster.</li>
 </ul></li>
+<li>Some initial portion of the MCMC sampling process corresponds to this “warmup” period.
+<ul>
+<li>Samples during the warmup period are oftentimes <em>not</em> used for inference.</li>
+</ul></li>
 </ul>
-<p>Some initial portion of the MCMC sampling process corresponds to this “warmup” period. - Samples during the warmup period are oftentimes <em>not</em> used for inference.</p>
 <h3 id="setting-the-warmupmode">Setting the <code>warmupMode</code></h3>
 <p>There are 4 possible ways the “warmup period” is set, which are controlled by the <code>warmupMode</code> variable:</p>
 <ul>

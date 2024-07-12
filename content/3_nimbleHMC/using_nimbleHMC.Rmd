@@ -87,14 +87,20 @@ The `nimbleHMC` package has two main components:
 
 Provides two distinct HMC samplers, for use in NIMBLE's HMC engine
 
+\  
+
 - **`NUTS`** sampler, implements HMC-NUTS sampling algorithm, identical to that provided in Stan (version 2.32.2).
   - The default sampler for all HMC-related functions
 
+\  
+
 - **`NUTS_classic`** sampler, implements the original NUTS sampling algorithm
--   s described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>
+  - Described in <a href="https://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf" target="_blank" style="color: blue">Hoffman and Gelman, 2014</a>
   - Provided for baseline performance and comparisons
 
-These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in NIMBLE's MCMC engine.
+\  
+
+ These two samplers (`NUTS`, and `NUTS_classic`) are fully compatible for use in NIMBLE's MCMC engine.
 
 - Can be added to an MCMC configuration object using the `addSampler` method:
   - `conf$addSampler(target = nodes, type = "NUTS")`
@@ -457,7 +463,7 @@ plot(as.mcmc(samples))
 - HMC sampling has a "warmup" period, during which it performs self-parameter tuning
   - After "warmup" is complete, the sampler stops self-adapatation, and runs faster.
   
-Some initial portion of the MCMC sampling process corresponds to this "warmup" period.
+- Some initial portion of the MCMC sampling process corresponds to this "warmup" period.
   - Samples during the warmup period are oftentimes *not* used for inference. 
 
 ### Setting the `warmupMode`
