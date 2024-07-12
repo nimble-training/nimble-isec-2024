@@ -2,7 +2,9 @@
 
 This repository contains Materials for the NIMBLE workshop at the 2024 ISEC conference at Swansea University, Wales.
 
-The workshop will be held in-person, on 13 July 2024 from 10:00 – 13:00 BST.
+*Change of time* - The workshop time has been changed to the **afternoon** of 13 July 2024 from **12:00 – 15:00 BST**.
+
+*Lunch* - In addition, all participants are invited to attend lunch prior to the workshop at 13:00.
 
 To prepare for the workshop:
 
