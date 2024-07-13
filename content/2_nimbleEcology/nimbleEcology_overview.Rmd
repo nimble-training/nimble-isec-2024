@@ -227,17 +227,17 @@ for(t in 1:T) {
 ## Some similar definition of O, observation probabilities
 for(k in 1:num_individuals) {
   for(t in 2:T) {
-    z[k, t] ~ dcat(T[z[t-1], 1:num_states, t])
+    z[k, t] ~ dcat(T[z[k, t-1], 1:num_states, t])
   }
   for(t in 1:T) {
-    y[k, t] ~ dcat(O[z[t], 1:num_states, t])
+    y[k, t] ~ dcat(O[z[k, t], 1:num_states, t])
   }
 }
 ```
 
 Let's discuss:
 
-- Computational cost of MCMC sampling for `z[t]` based on `dcat`.
+- Computational cost of MCMC sampling for `z[k, t]` based on `dcat`.
 - Dependencies of survival and transition probabilities (or their underlying parameters).
 
 Hidden Markov models (worked example)
