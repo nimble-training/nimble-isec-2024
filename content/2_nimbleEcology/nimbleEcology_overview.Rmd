@@ -151,7 +151,7 @@ Why we don't care as much about mean MCMC efficiency
 - It is tempting to think mean (across parameters) of MCMC efficiency is a good measure of overall performance.
 - If some parameters are mixing very well and others very poorly, you should not feel the results are acceptable.
 
-Two principle of MCMC efficiency
+Two principles of MCMC efficiency
 =====
 
 1. A fast-computing, slow-mixing MCMC can sometimes beat a slow-computing, fast-mixing MCMC.
