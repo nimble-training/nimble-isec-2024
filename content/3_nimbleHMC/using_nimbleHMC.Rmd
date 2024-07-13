@@ -138,7 +138,7 @@ We'll return to the dipper example from the first module.  We'll now sample this
 
 \   
 
-### 1. Full workflow, using `configureHMC` and `addSampler`
+### 1. Full workflow, using `configureMCMC` and `addSampler`
 
 - Here, we'll use the full workflow, where we modify the MCMC configuration object, to add an HMC sampler.  This workflow will use:
   - `nimbleModel`
